@@ -7,10 +7,10 @@ import java.util.ArrayList;
 
 public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
         
-    private JLabel Chair1, Chair2, Desk1, Desk2, Desk3, Desk4, Table1, Table2;
+    private final JLabel Chair1, Chair2, Desk1, Desk2, Desk3, Desk4, Table1, Table2;
     //private JLabel emptySmall1, emptySmall2, emptySmall3, emptySmall4, emptySmall5, emptySmall6;
     //private JLabel emptyLarge1, emptyLarge2, emptyLarge3;
-    private ImageIcon c1, c2, d1, d2, d3, d4, t1, t2;// eS1, eS2, eS3, eS4, eS5, eS6, eL1, eL2, eL3;
+    private final ImageIcon c1, c2, d1, d2, d3, d4, t1, t2;// eS1, eS2, eS3, eS4, eS5, eS6, eL1, eL2, eL3;
     
     // counters
     int smallGridpos = 0;
@@ -36,15 +36,15 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
     ImageIcon emptyLarge = new ImageIcon(getClass().getResource("/img/empty_w150xh100.png"));   
     JLabel[] emptyLargeLabel = new JLabel[3];
     
-    private JButton addChairBTN = new JButton();
-    private JButton addTableBTN = new JButton();
-    private JButton addDeskBTN = new JButton();
-    private JButton clearAllBTN = new JButton();
-    private JButton totalPriceBTN = new JButton();
-    private JButton saveBTN = new JButton();
-    private JButton loadBTN = new JButton();
-    private JButton summaryBTN = new JButton();
-    private JButton tempBTN = new JButton();
+    private final JButton addChairBTN = new JButton();
+    private final JButton addTableBTN = new JButton();
+    private final JButton addDeskBTN = new JButton();
+    private final JButton clearAllBTN = new JButton();
+    private final JButton totalPriceBTN = new JButton();
+    private final JButton saveBTN = new JButton();
+    private final JButton loadBTN = new JButton();
+    private final JButton summaryBTN = new JButton();
+    private final JButton tempBTN = new JButton();
     
     JTextArea txtArea = new JTextArea(8,38);
     int x,y;
@@ -339,12 +339,14 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
     }
  
 
+    @Override
     public void mouseEntered(MouseEvent event){
 
         txtArea.setText("Mouse Entered");
 
     }
 
+    @Override
     public void mousePressed(MouseEvent event){
 
         //txtArea.append("\nMouse Pressed at X: " + x + " Y" + y);
@@ -362,12 +364,18 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
 
     }
 
+    @Override
     public void mouseReleased(MouseEvent event){
 
         txtArea.append("\nMouse released");
 
     }
-
+    
+    /**
+     *
+     * @param event
+     */
+    @Override
     public void mouseClicked(MouseEvent event){
         JLabel clickedLabel = (JLabel) event.getSource();
          
@@ -424,19 +432,22 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
           } //end button 3
 
     }
-
+    
+    @Override
     public void mouseExited(MouseEvent event){}
-
+    
+    @Override
     public void mouseMoved(MouseEvent event){
 
         x = event.getX(); y = event.getY();
 
     }
 
+    @Override
     public void mouseDragged(MouseEvent event){}
 
     
-
+    @Override
     public void actionPerformed(ActionEvent event){  
 
         if(event.getSource() == addChairBTN){
