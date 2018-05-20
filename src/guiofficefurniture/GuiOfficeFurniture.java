@@ -4,27 +4,37 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Scanner;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.*;
 
 public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
-        
-    private final JLabel Chair1, Chair2, Desk1, Desk2, Desk3, Desk4, Table1, Table2;
+    
+    //
+    private final JLabel Chair1, Chair2;//, Desk1, Desk2, Desk3, Desk4, Table1, Table2;
     //private JLabel emptySmall1, emptySmall2, emptySmall3, emptySmall4, emptySmall5, emptySmall6;
     //private JLabel emptyLarge1, emptyLarge2, emptyLarge3;
-    private final ImageIcon c1, c2, d1, d2, d3, d4, t1, t2;// eS1, eS2, eS3, eS4, eS5, eS6, eL1, eL2, eL3;
+    private final ImageIcon c1, c2;//, d1, d2, d3, d4, t1, t2;// eS1, eS2, eS3, eS4, eS5, eS6, eL1, eL2, eL3;
     
     // counters
     int smallGridpos = 0;
-    int pos;
+    int bigGridpos = 0;
+    double totalPrice = 0;
     
-    // Collections
-    static FurnitureItem[] smallF = new FurnitureItem[6];
-    static FurnitureItem[] largeV = new FurnitureItem[3];
-    
-    static ArrayList<Chair> aChair = new ArrayList<>();
-    static ArrayList<Table> aTable = new ArrayList<>();
-    static ArrayList<Desk> aDesk = new ArrayList<>();
-    
-    static double totalPrice = 0;
+    // Array Collections for Class's
+    ArrayList<FurnitureItem> aCollectionAll = new ArrayList<>();
+    ArrayList<FurnitureItem> aCollectionSmall = new ArrayList<>();
+    ArrayList<FurnitureItem> aCollectionLarge = new ArrayList<>();
     
     JTextField chairID = new JTextField(8);
     JTextField typeOfWood = new JTextField(8);
@@ -66,7 +76,7 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         pnlSouth.setBackground(Color.yellow);
         pnlSouth.setOpaque(true);
                 
-        JPanel btnPanel = new JPanel(new GridLayout(8,1));
+        JPanel btnPanel = new JPanel(new GridLayout(9,1));
         
         JPanel ctPanel = new JPanel(new GridLayout(3,2)); 
         
@@ -111,7 +121,6 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         
         
         // set the images in an array
-        
         c1 = new ImageIcon(getClass().getResource("/img/Chair1.png"));
         Chair1 = new JLabel(c1);
         Chair1.setOpaque(true);
@@ -119,7 +128,7 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         c2 = new ImageIcon(getClass().getResource("/img/Chair2.png"));
         Chair2 = new JLabel(c2);
         Chair2.setOpaque(true);
-        
+        /*
         d1 = new ImageIcon(getClass().getResource("/img/Desk1.png"));
         Desk1 = new JLabel(d1);
         Desk1.setOpaque(true);
@@ -143,6 +152,7 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         t2 = new ImageIcon(getClass().getResource("/img/Table2.png"));
         Table2 = new JLabel(t2);
         Table2.setOpaque(true);
+        */
         
         for (int i = 0; i < 6; i++){     
             emptySmallLabel[i] = new JLabel();
@@ -186,6 +196,12 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         
         totalPriceBTN.addActionListener(this);
         
+        saveBTN.addActionListener(this);
+        
+        loadBTN.addActionListener(this);
+        
+        summaryBTN.addActionListener(this);
+        
         tempBTN.addActionListener(this);
 
         for (int i = 0; i < 6; i++){
@@ -204,13 +220,15 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         }
         
         Chair1.addMouseListener(this);
+        
         Chair2.addMouseListener(this);
+        /*
         Desk1.addMouseListener(this);
         Desk2.addMouseListener(this);
         Desk3.addMouseListener(this);
         Desk4.addMouseListener(this);
         Table1.addMouseListener(this);
-        Table2.addMouseListener(this);
+        Table2.addMouseListener(this);*/
         
         txtArea.addMouseListener(this);
 
@@ -225,15 +243,165 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         JOptionPane.showMessageDialog(null, sumChair.toString(), "Item Details", JOptionPane.INFORMATION_MESSAGE);   
     }
     
-    // tempory realod array to test placement
-    void tempPlacement()
+    
+    
+    // display summary of order in asending order of price
+    void displaySummary()
     {
-        clearFunction();
+        // clear the Complate collection
+        aCollectionAll.clear();
+        
+        // add all small items to the complete collection
+        aCollectionSmall.forEach((singleItem) -> {
+            aCollectionAll.add(singleItem);
+        });
+        
+        // add all Large items to the complete collection
+        aCollectionLarge.forEach((singleItem) -> {
+            aCollectionAll.add(singleItem);
+        });
+        
+        
+        // Sort by Total Price:
+        Collections.sort(aCollectionAll, new ItemPriceComparator());
+        
         
         // list though all chair classes
-        for(Chair singleChair : aChair)
+        aCollectionAll.forEach((singleChair) -> {
+            System.out.println("\n "+singleChair.toString());
+        });
+    }
+    
+    
+    // clear function
+    void clearFunction()
+    {
+        System.out.println("Clear All Button Pressed");
+        
+        // reset all counters
+        smallGridpos = 0; //reset position
+        bigGridpos = 0;
+        totalPrice = 0;
+        
+        // reset all array collections
+        aCollectionAll.clear();
+        aCollectionSmall.clear();
+        aCollectionLarge.clear();
+        
+        // reset small labels
+        for (int i = 0; i < 6; i++){     
+            //emptySmallLabel[i] = new JLabel();
+            emptySmallLabel[i].setIcon(emptySmall);          
+        }
+        
+        // reset large labels
+        for (int i = 0; i < 3; i++){     
+            //emptySmallLabel[i] = new JLabel();
+            emptyLargeLabel[i].setIcon(emptyLarge);          
+        }
+    }
+    
+    
+    
+    // Save
+    void saveToFile()
+    {
+        // clear the Complate collection
+        aCollectionAll.clear();
+        
+        // add all small items to the complete collection
+        aCollectionSmall.forEach((singleItem) -> {
+            aCollectionAll.add(singleItem);
+        });
+        
+        // add all Large items to the complete collection
+        aCollectionLarge.forEach((singleItem) -> {
+            aCollectionAll.add(singleItem);
+        });
+        
+        // try to save the file, error with IO expresion if it fails.
+        try {
+            FileOutputStream fos = new FileOutputStream("file1.dat");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(aCollectionAll);
+            oos.close();
+            System.out.println("\n File Saved!");
+        }
+        catch (IOException e)
         {
-            if(singleChair.getArmRests() == true)
+            e.printStackTrace();
+        }
+    }
+    
+    
+    
+    
+    // Load
+    void loadFromFile() throws ClassNotFoundException
+    {
+        // run the clear function to clear all variables
+        clearFunction();
+        
+        try {
+            FileInputStream fis = new FileInputStream("file1.dat");
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            aCollectionAll = (ArrayList<FurnitureItem>) ois.readObject();
+            ois.close();
+            System.out.println("\n File loaded!");
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        
+        
+        // loop thought all collection and them to the approtirate collection
+        aCollectionAll.forEach((FurnitureItem singleItem) -> {
+            if("Chair".equals(singleItem.getClass().getSimpleName()))
+                aCollectionSmall.add(singleItem);
+            
+            if("Table".equals(singleItem.getClass().getSimpleName()))
+                aCollectionSmall.add(singleItem);
+            
+            if("Desk".equals(singleItem.getClass().getSimpleName()))
+                aCollectionLarge.add(singleItem);
+            
+            //System.out.println("\n "+singleItem.getClass().getSimpleName());
+        });
+        
+        placeItemsOnGrid();
+    }
+    
+    
+    
+    // tempory realod array to test placement
+    void placeItemsOnGrid()
+    {
+        // reset posistion counters
+        smallGridpos = 0; //reset position
+        bigGridpos = 0;
+        
+        // reset small labels
+        for (int i = 0; i < 6; i++){     
+            //emptySmallLabel[i] = new JLabel();
+            emptySmallLabel[i].setIcon(emptySmall);          
+        }
+        
+        // reset large labels
+        for (int i = 0; i < 3; i++){     
+            //emptySmallLabel[i] = new JLabel();
+            emptyLargeLabel[i].setIcon(emptyLarge);          
+        }
+        
+        
+        
+        // list though all chair classes
+        aCollectionSmall.forEach((FurnitureItem singleItem) -> {
+            
+            emptySmallLabel[smallGridpos].setIcon(singleItem.getImage());
+            smallGridpos++;
+            /*
+            if(singleItem.getArmRests() == true)
             {
                 emptySmallLabel[smallGridpos].setIcon(c1);
                 //emptySmallLabel[smallGridpos].a
@@ -244,8 +412,8 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
                 
                 
             }
-            totalPrice = totalPrice + (singleChair.getTotalPrice());
-        }
+            totalPrice = totalPrice + (singleChair.getTotalPrice());*/
+        });
         
         
     }
@@ -255,7 +423,7 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
     
     //static void newChair(){
     
-    public Chair addChair(){
+    public void addChair(){
         
         ButtonGroup tow = new ButtonGroup();        
         JRadioButton oak = new JRadioButton("Oak", true);
@@ -304,19 +472,12 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
            System.out.println("Quantity: " + quantity.getText());
 
            if (chair1.isSelected()){               
-                System.out.println("Chair1: " + chair1.getText());
-                //emptySmall3.setIcon(c1);
                 tempBool = false;
-                emptySmallLabel[smallGridpos].setIcon(c1);
-                smallGridpos++;
            } 
            else if (chair2.isSelected()){
-                System.out.println("Chair2: " + chair2.getText());
-                //emptySmall6.setIcon(c2);
                 tempBool = true;
-                emptySmallLabel[smallGridpos].setIcon(c2);
-                smallGridpos++;
            } 
+           placeItemsOnGrid();
         }    
         if (chairBtnResult == JOptionPane.OK_OPTION){
             System.out.println("OK Pressed");
@@ -331,11 +492,12 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         int qty = Integer.parseInt(quantity.getText());
         
      //Chair newChair = new Chair(chairID.getText());
-        Chair newChair = new Chair(id, tempChar, qty, tempBool);
+     
+        FurnitureItem newChair = new Chair();
+        newChair = new Chair(id, tempChar, qty, tempBool);
         
-        aChair.add(newChair);
-        
-        return newChair;
+        // Add to Small Array Collaction
+        aCollectionSmall.add(newChair);
     }
  
 
@@ -480,26 +642,42 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
 
         }
         
+        if(event.getSource() == saveBTN){
+
+            System.out.println("save Button Pressed");
+            
+            saveToFile();
+        }
+        
+        if(event.getSource() == loadBTN){
+
+            System.out.println("load Button Pressed");
+            
+            try {
+                loadFromFile();
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(GuiOfficeFurniture.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        if(event.getSource() == summaryBTN){
+
+            System.out.println("Summary Button Pressed");
+            
+            displaySummary();
+        }
+        
+        
+        
         if(event.getSource() == tempBTN)
         {
             System.out.println("Temp Button Pressed");
             
             tempPlacement();
         }
-
     }
     
-    // clear function
-    void clearFunction()
-    {
-        System.out.println("Clear All Button Pressed");
-        smallGridpos = 0; //reset position
-
-        for (int i = 0; i < 6; i++){     
-            //emptySmallLabel[i] = new JLabel();
-            emptySmallLabel[i].setIcon(emptySmall);          
-        }
-    }
+    
     
 
     public static void main(String[] args) {
@@ -512,4 +690,11 @@ public class GuiOfficeFurniture extends JFrame implements ActionListener, MouseL
         
     }
 
+}
+
+
+class ItemPriceComparator implements Comparator<FurnitureItem> {
+    public int compare(FurnitureItem item1, FurnitureItem item2) {
+        return (int)item1.getTotalPrice()- (int)item2.getTotalPrice();
+    }
 }
